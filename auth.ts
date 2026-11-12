@@ -1,9 +1,9 @@
-import NextAuth from "next-auth"
-import Google from "next-auth/providers/google"
+import NextAuth from "next-auth";
+import Google from "next-auth/providers/google";
 import GitHub from "next-auth/providers/github";
-import { cert } from "firebase-admin/app";
 import { FirestoreAdapter } from "@auth/firebase-adapter";
- 
+import { db } from "@/lib/firebase/admin";
+
 export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [
     Google({
@@ -13,13 +13,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     GitHub({
       clientId: process.env.AUTH_GITHUB_ID,
       clientSecret: process.env.AUTH_GITHUB_SECRET,
-    })
+    }),
   ],
-  adapter: FirestoreAdapter({
-    credential: cert({
-      projectId: process.env.AUTH_FIREBASE_PROJECT_ID,
-      clientEmail: process.env.AUTH_FIREBASE_CLIENT_EMAIL,
-      privateKey: process.env.AUTH_FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'), // ensures private key newlines parse correctly
- }),
-  }),
+  adapter: FirestoreAdapter(db),
+  session: {
+    strategy: "database",
+  },
 });
